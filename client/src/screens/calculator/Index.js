@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, TextInput, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, TextInput, Dimensions,ScrollView } from 'react-native'
 
 import ButtonOperation from './ButtonOperation'
 
@@ -14,11 +14,12 @@ export default function Calculator() {
     currentNumber: '',//get string then pass to number
     historyOp: '' //get last operator that cliked
   })
+  const [stack, setStack]= useState([]);
 
   const getValue = val => {
 
     if(val=='.'){
-      console.log(typeof(result));
+      console.log(stack);
       return;
     }
 
@@ -45,7 +46,7 @@ export default function Calculator() {
       let temp=tree.currentNumber;
       temp=temp+val;
       setTree({...tree, currentNumber: temp});
-      if(temp !='' && tree.historyOp!='' && tree.left>0){
+      if(temp !='' && tree.historyOp!=''){
         let num=parseInt(temp);
         let getResult=0;
         if(tree.historyOp == '+'){ getResult=tree.left+num; }
@@ -54,39 +55,43 @@ export default function Calculator() {
         else if(tree.historyOp == '*'){ getResult=tree.left*num; }
         else if(tree.historyOp == '%'){ getResult=tree.left%num; }
         setResult(getResult);
+        setStack([...stack,getResult])
         setTree({...tree, currentNumber: temp});
       }
     }
-    // if(val=='<') return setShow(prev=> prev=prev.substring(0,prev.length-1))
+    if(val=='<') {
+      setShow(prev=> prev=prev.substring(0,prev.length-1))
+    }
     if(val=='C'){
       setShow('');
       setTree({left:0, currentNumber:'', historyOp: ''})
       setResult(0);
       return;
     }
-    if(show.length>10){
-      console.log(show)
-      // let newStr=`${result} ${tree.historyOp} ${tree.currentNumber}`
-      // setShow(newStr);
-    }
+    // if(show.length>10){
+    //   console.log(show)
+    //   // let newStr=`${result} ${tree.historyOp} ${tree.currentNumber}`
+    //   // setShow(newStr);
+    // }
     setShow(prev=>prev+val);
   }
 
   return (
-    <View style={styles.container}>
-
+    <View style={[styles.container, {flex: 1}]}>
+      <ScrollView>
         <View style={{marginBottom: 10}}>
           <Text style={styles.textHead}>Display</Text>
           <View style={styles.inputCnt}>         
             <TextInput
                 value={show}  
+                multiline={true}
                 style={styles.textInputLabel}
             />
             <Text style={styles.resultText}>{result}</Text>
           </View>
         </View>
-
         <ButtonOperation getValue={(val)=>getValue(val)} />
+      </ScrollView>
         {/* <View style={styles.buble}></View> */}
     </View>
   )

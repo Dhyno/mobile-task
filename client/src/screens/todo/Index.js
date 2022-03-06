@@ -1,14 +1,17 @@
-import { View, Text, TextInput, StyleSheet, Dimensions, TouchableOpacity, Image } from 'react-native'
+import { View, Text, TextInput, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Image } from 'react-native'
 import { CheckBox,Overlay } from 'react-native-elements'
-import deleteImg from '../../../assets/delete.png'
 import React,{ useEffect, useRef, useState } from 'react'
 import axios from 'axios';
+
+import deleteImg from '../../../assets/delete.png'
+import reqError from '../../../assets/404.png'
 
 export default function TodoApp() {
     const config = { headers: { "Content-type": "application/json",} };
 
     const [inputChange, setInputChange]=useState('');
     const [dataAPI, setDataAPI]=useState([])
+    const [notRespond, setNotRespond]= useState(false);
 
     const todoInput=useRef();
 
@@ -69,36 +72,51 @@ export default function TodoApp() {
     const getData = () => {
         axios.get("http://localhost:5000/todo")
         .then(res=> setDataAPI(res.data.result))
-        .catch(err=> console.log(err))
+        .catch(err=> {
+            setNotRespond(true)
+            console.log(err)
+        })
     }
     useEffect(()=> getData(),[]);
 
   return (
-    <View style={styles.container}>
-        <TextInput
-            ref={todoInput}
-            placeholder="Write a note .."
-            style={styles.textInputLabel}
-            multiline={true}
-            onChange={e=>handleChange(e)}
-        />
-        <View style={styles.dataCnt}>
-            { dataAPI.map( data => <RenderData 
+    <View style={[styles.container,{flex: 1}]}>
+        <ScrollView>
+            {notRespond ? 
+                <View style={styles.cntNotRespons}>
+                    <Text style={styles.txtNotRespons}>oooops something wrong please back later</Text>
+                    <Image source={reqError} style={styles.notRespons} />
+                </View>
+                
+                :
+                <View>
+                    <TextInput
+                        ref={todoInput}
+                        placeholder="Write a note .."
+                        style={styles.textInputLabel}
+                        multiline={true}
+                        onChange={e=>handleChange(e)}
+                    />
+                    <View style={styles.dataCnt}>
+                        { dataAPI.map( data => <RenderData 
 
-                data={data}
-                key={data.id}
-                handleEvent={(id)=>handleEvent(id)}
-                handleDelete={ (id)=>handleDelete(id) }
-                handleUpdateStatus={ (id,check)=> handleUpdateStatus(id,check) }
-                handleUpdateTodo= { (dataToUpdate, id )=>handleUpdateTodo(dataToUpdate,id) }
+                            data={data}
+                            key={data.id}
+                            handleEvent={(id)=>handleEvent(id)}
+                            handleDelete={ (id)=>handleDelete(id) }
+                            handleUpdateStatus={ (id,check)=> handleUpdateStatus(id,check) }
+                            handleUpdateTodo= { (dataToUpdate, id )=>handleUpdateTodo(dataToUpdate,id) }
 
-            /> ) }
-        </View>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 20}}>
-            <TouchableOpacity onPress={handleAddData} style={styles.addBtn}>
-                <Text style={styles.textAddBtn}>Add</Text>
-            </TouchableOpacity>
-        </View>
+                        /> ) }
+                    </View>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 20}}>
+                        <TouchableOpacity onPress={handleAddData} style={styles.addBtn}>
+                            <Text style={styles.textAddBtn}>Add</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            }
+        </ScrollView>
     </View>
   )
 }
@@ -166,6 +184,23 @@ function RenderData( props ){
 }
 
 const styles = StyleSheet.create({
+    txtNotRespons: {
+        color: "#c684ff",
+        fontSize: '1.59rem',
+        opacity: 0.59,
+        textAlign: 'center',
+        position: 'absolute',
+        fontWeight: 800,
+        zIndex: 10
+    },  
+    cntNotRespons: {
+        position: 'relative'
+    },
+    notRespons: {
+        width: Dimensions.get('window').width,
+        height:  Dimensions.get('window').height-50,
+        zIndex: 1
+    },  
     textInputLabel:{
       color: '#1c1717',
       out: 'none',
